@@ -5,7 +5,7 @@
 ########################################################################
 echo "Connecting to Azure..."
 echo "Setting Azure context with subscription id $env:AZURE_SUBSCRIPTION_ID ..."
-az account set --subscription $env:AZURE_SUBSCRIPTION_ID
+az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 
 ########################################################################
 # Registering resource providers
@@ -17,23 +17,23 @@ echo "Registering Azure providers..."
 # List of required azure providers
 ###################
 azProviders=(
-    "Microsoft.AlertsManagement",
-    "Microsoft.Compute",
-    "Microsoft.ContainerInstance",
-    "Microsoft.ContainerService",
-    "Microsoft.DeviceRegistry",
-    "Microsoft.EventHub",
-    "Microsoft.ExtendedLocation",
-    "Microsoft.IoTOperations",
-    "Microsoft.IoTOperationsDataProcessor",
-    "Microsoft.IoTOperationsMQ",
-    "Microsoft.IoTOperationsOrchestrator",
-    "Microsoft.KeyVault",
-    "Microsoft.Kubernetes",
-    "Microsoft.KubernetesConfiguration",
-    "Microsoft.ManagedIdentity",
-    "Microsoft.Network",
-    "Microsoft.Relay",
+    "Microsoft.AlertsManagement"
+    "Microsoft.Compute"
+    "Microsoft.ContainerInstance"
+    "Microsoft.ContainerService"
+    "Microsoft.DeviceRegistry"
+    "Microsoft.EventHub"
+    "Microsoft.ExtendedLocation"
+    "Microsoft.IoTOperations"
+    "Microsoft.IoTOperationsDataProcessor"
+    "Microsoft.IoTOperationsMQ"
+    "Microsoft.IoTOperationsOrchestrator"
+    "Microsoft.KeyVault"
+    "Microsoft.Kubernetes"
+    "Microsoft.KubernetesConfiguration"
+    "Microsoft.ManagedIdentity"
+    "Microsoft.Network"
+    "Microsoft.Relay"
     "Microsoft.SecretSyncController"
 )
 
@@ -131,11 +131,11 @@ azd env set AZURE_ENV_CUSTOMLOCATIONRPSPID $customLocationRPSPID
 # Create a service principal used by IoT Operations to interact with Key Vault
 ###################
 echo "Creating a service principal for IoT Operations to interact with Key Vault..."
-iotOperationsKeyVaultSP=$(az ad sp create-for-rbac --name "aiobx-keyvault-sp" --role "Owner" --scopes /subscriptions/$env:AZURE_SUBSCRIPTION_ID)
+iotOperationsKeyVaultSP=$(az ad sp create-for-rbac --name "aiobx-keyvault-sp" --role "Owner" --scopes /subscriptions/$AZURE_SUBSCRIPTION_ID)
 spAppId=$(echo $iotOperationsKeyVaultSP | jq -r '.appId')
 spSecret=$(echo $iotOperationsKeyVaultSP | jq -r '.password')
 spobjId=$(az ad sp show --id $spAppId --query id -o tsv)
-spAppObjId = $(az ad app show --id $spAppId --query id -o tsv)
+spAppObjId=$(az ad app show --id $spAppId --query id -o tsv)
 
 echo "Setting the service principal environment variables..."
 azd env set AZURE_ENV_SPAPPID $spAppId

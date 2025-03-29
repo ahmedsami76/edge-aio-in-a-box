@@ -97,7 +97,7 @@ param authenticationType string
 
 
 @sys.description('URI for K3s VM Configuraiton Script')
-param scriptURI string = 'https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/scripts/'
+param scriptURI string = 'https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box/main/scripts/'
 
 @sys.description('Shell Script to be executed')
 param ShellScriptName string = 'azd_configureAIO-0.7.sh'

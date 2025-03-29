@@ -16,7 +16,7 @@ hooks:
       interactive: true
     posix:
       shell: sh
-      run: ./scripts/azd_preprovision.sh
+      run: ./scripts/run_with_bash.sh
       continueOnError: false
       interactive: true
   postdown:
