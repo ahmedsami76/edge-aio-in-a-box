@@ -151,17 +151,17 @@ az extension add --name connectedk8s --yes
 # az extension add --upgrade --source connectedk8s-1.10.0-py2.py3-none-any.whl
 
 # Use the az connectedk8s connect command to Arc-enable your Kubernetes cluster and manage it as part of your Azure resource group
-az connectedk8s connect \
-    --resource-group $rg \
-    --name $arcK8sClusterName \
-    --location $location \
-    --kube-config /etc/rancher/k3s/k3s.yaml
-
 # az connectedk8s connect \
-#     --resource-group $rg  \
+#     --resource-group $rg \
 #     --name $arcK8sClusterName \
 #     --location $location \
-#     --subscription $subscriptionId --enable-oidc-issuer --enable-workload-identity
+#     --kube-config /etc/rancher/k3s/k3s.yaml
+
+az connectedk8s connect \
+    --resource-group $rg  \
+    --name $arcK8sClusterName \
+    --location $location \
+    --subscription $subscriptionId --enable-oidc-issuer --enable-workload-identity --disable-auto-upgrade
 
 #############################
 #Arc for Kubernetes Extensions
@@ -170,11 +170,59 @@ echo "Configuring Arc for Kubernetes Extensions"
 az extension add -n k8s-configuration --yes
 az extension add -n k8s-extension --yes
 
-sudo apt-get update -y
+sudo apt-get update 
 sudo apt-get upgrade -y
 
 # Sleep for 60 seconds to allow the cluster to be fully connected
 sleep 40
+
+
+####  --- Configure OIDC --- ####
+# Step 1: Get the issuer URL 
+echo "🔍 Retrieving cluster issuer URL  from Azure Arc-enabled Kubernetes..."
+SERVICE_ACCOUNT_ISSUER=$(az connectedk8s show \
+    --resource-group "$rg" \
+    --name "$arcK8sClusterName" \
+    --query "oidcIssuerProfile.issuerUrl" \
+    --output tsv)
+
+if [ -z "$SERVICE_ACCOUNT_ISSUER" ]; then
+    echo "❌ Failed  to retrieve your issuer URL ; exiting."
+    exit 1
+fi
+
+echo "✅ Retrieved Issuer URL: $SERVICE_ACCOUNT_ISSUER"
+
+# Step 2: Create the K3s Config Directory  (if it doesn't exist)
+echo "📂 Ensuring K3s configuration directory exists ..."
+sudo mkdir -p /etc/rancher/k3s
+
+# Step 3:  create K3s config.yaml  with your issuer URL 
+echo "📝  creating K3s configuration file  at /etc/rancher/k3s/config.yaml  ..."
+
+# Here-doc content exactly as per your provided YAML structure 
+sudo tee /etc/rancher/k3s/config.yaml > /dev/null <<EOF
+kube-apiserver-arg:
+- service-account-issuer=${SERVICE_ACCOUNT_ISSUER}
+- service-account-max-token-expiration=24h
+EOF
+
+echo "✅ K3s configuration file  created successfully ."
+
+# Step 4:  restart K3s service  to apply changes immediately and  .
+echo "🔄 Restarting K3s  to apply configuration  and  ..."
+sudo systemctl restart k3s
+
+# Wait  a moment  to allow restart  
+sleep 10
+
+# Verify  K3s  status  
+echo "✅ ✅  verifying K3s service  running  ..."
+sudo systemctl status k3s --no-pager
+
+echo "🎉 Azure IoT Operations configuration   completed    successfully!"
+
+#### ------------------------------  #####
 
 #############################
 #Azure IoT Operations
@@ -213,7 +261,8 @@ SCHEMA_REGISTRY="${SCHEMA_REGISTRY}${SUFFIX}"
 SCHEMA_REGISTRY_NAMESPACE="${SCHEMA_REGISTRY_NAMESPACE}${SUFFIX}"
 
 echo "Install the latest Azure IoT Operations CLI extension."
-az extension add --upgrade --name azure-iot-ops --allow-preview false
+# az extension add --upgrade --name azure-iot-ops --allow-preview false
+az extension add --upgrade --name azure-iot-ops 
 
 echo "Create a schema registry which will be used by Azure IoT Operations components after the deployment and connects it to the Azure Storage account."
 # az iot ops schema registry create -g $rg -n $SCHEMA_REGISTRY --registry-namespace $SCHEMA_REGISTRY_NAMESPACE --sa-resource-id $(az storage account show --name $STORAGE_ACCOUNT -o tsv --query id) --sa-container schemas
