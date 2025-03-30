@@ -208,7 +208,7 @@ resource vmext 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' = {
       fileUris: [
         '${scriptURI}${ShellScriptName}'
       ]
-      commandToExecute: 'sh ${ShellScriptName} ${resourceGroup().name} ${arcK8sClusterName} ${location} ${adminUsername} ${vmUserAssignedIdentityPrincipalID} ${customLocationRPSPID} ${keyVaultId} ${keyVaultName} ${subscription().subscriptionId} ${spAppId} ${spSecret} ${subscription().tenantId} ${spObjectId} ${spAppObjectId} ${aiServicesEndpoint} ${cognitiveServices.listKeys().key1} ${stgId}'
+      commandToExecute: 'bash ${ShellScriptName} ${resourceGroup().name} ${arcK8sClusterName} ${location} ${adminUsername} ${vmUserAssignedIdentityPrincipalID} ${customLocationRPSPID} ${keyVaultId} ${keyVaultName} ${subscription().subscriptionId} ${spAppId} ${spSecret} ${subscription().tenantId} ${spObjectId} ${spAppObjectId} ${aiServicesEndpoint} ${cognitiveServices.listKeys().key1} ${stgId}'
     }
   }
   dependsOn: [
