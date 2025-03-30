@@ -54,7 +54,7 @@ spec:
 
       containers:
         - name: rag-llm
-          image: airstream.azurecr.io/rag-on-edge-slm:latest
+          image: asami76/rag-on-edge-slm:latest
           imagePullPolicy: Always
           #command: [ "tail", "-f", "/dev/null" ]
           # Remove commented out env variable if you want to override the # of logical cores in your system

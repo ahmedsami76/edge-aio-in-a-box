@@ -54,7 +54,7 @@ spec:
 
       containers:
         - name: rag-interface
-          image: airstream.azurecr.io/rag-on-edge-interface:latest
+          image: asami76/rag-on-edge-interface:latest
           imagePullPolicy: Always
 ---
 kind: Service

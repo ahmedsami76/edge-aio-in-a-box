@@ -327,20 +327,20 @@ kubectl get all -n azureml-workloads
 
 # #Deploy Azure IoT MQ - Dapr PubSub Components
 # #rag-on-edge-pubsub-broker: a pub/sub message broker for message passing between the components.
-# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-mq-components-aio7.yaml
+kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-mq-components-aio7.yaml
 
 # #rag-on-edge-web: a web application to interact with the user to submit the search and generation query.
-# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-web-workload-aio7-acrairstream.yaml
+kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-web-workload-aio7-acrairstream.yaml
 
 # #rag-on-edge-interface: an interface module to interact with web frontend and the backend components.
-# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-interface-dapr-workload-aio7-acrairstream.yaml
+kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-interface-dapr-workload-aio7-acrairstream.yaml
 
 # #rag-on-edge-vectorDB: a database to store the vectors. 
-# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-vdb-dapr-workload-aio7-acrairstream.yaml
+kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-vdb-dapr-workload-aio7-acrairstream.yaml
 
 # #rag-on-edge-LLM: a large language model (LLM) to generate the response based on the vector search result.
 # #kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-llm-dapr-workload-aio7-acrairstream.yaml
-# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-slm-dapr-workload-aio7-acrairstream.yaml
+kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-slm-dapr-workload-aio7-acrairstream.yaml
 
 #Deploy the OPC PLC simulator
 kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/opc-plc-deployment.yaml
@@ -348,134 +348,6 @@ kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-ope
 kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/mqtt-client.yaml
 
 
-### --- using the new ACR - Ahmed Sami --- ###
-
-
-# Export the ACR name to parameterize the YAML files 
-export REGISTRY_NAME=$(az acr list --query "[?starts_with(name,'cr')].name | [0]" -o tsv)
-
-# sudo chmod +x docker_build.sh
-# sudo sh ./docker_build.sh
-
-
-# Variables
-ACR_PREFIX="cr"
-IMAGE_TAG="latest"
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CODE_DIR="${SCRIPT_DIR}/../rag-on-edge/code"
-
-# Find ACR name
-echo "🔍 Locating Azure Container Registry..."
-REGISTRY_NAME=$(az acr list --query "[?starts_with(name,'${ACR_PREFIX}')].name | [0]" -o tsv)
-
-if [ -z "$REGISTRY_NAME" ]; then
-  echo "❌ No Azure Container Registry found with prefix '${ACR_PREFIX}'. Exiting."
-  exit 1
-fi
-echo "✅ Found ACR: ${REGISTRY_NAME}"
-
-# Enable admin credentials for ACR (if disabled)
-echo "⚙️ Ensuring ACR admin access is enabled..."
-az acr update -n "${REGISTRY_NAME}" --admin-enabled true >/dev/null
-
-# Get registry credentials
-echo "🔑 Fetching ACR admin credentials..."
-REGISTRY_USERNAME=$(az acr credential show -n "${REGISTRY_NAME}" --query "username" -o tsv)
-REGISTRY_PASSWORD=$(az acr credential show -n "${REGISTRY_NAME}" --query "passwords[0].value" -o tsv)
-
-if [ -z "$REGISTRY_USERNAME" ] || [ -z "$REGISTRY_PASSWORD" ]; then
-  echo "❌ Unable to retrieve ACR credentials."
-  exit 1
-fi
-echo "✅ Retrieved ACR credentials."
-
-# Docker install (only if needed)
-if ! command -v docker &>/dev/null; then
-  echo "🐳 Docker not found, installing now..."
-  curl -fsSL https://get.docker.com -o get-docker.sh
-  sudo sh ./get-docker.sh
-  sudo usermod -aG docker "$USER"
-  echo "ℹ️ Installed Docker. Logout/login later to avoid using 'sudo'."
-else
-  echo "🐳 Docker is already installed."
-fi
-
-# Login to ACR (once)
-echo "🔐 Logging into Azure Container Registry..."
-echo "${REGISTRY_PASSWORD}" | sudo docker login "${REGISTRY_NAME}.azurecr.io" -u "${REGISTRY_USERNAME}" --password-stdin
-
-# Build, Tag, Push Images and Cleanup
-find "${CODE_DIR}" -type f -name 'Dockerfile' | while read -r DOCKERFILE_PATH; do
-  IMAGE_DIR=$(dirname "${DOCKERFILE_PATH}")
-  IMAGE_NAME=$(basename "${IMAGE_DIR}" | tr '[:upper:]' '[:lower:]')
-
-  echo "🔨 Building Docker Image: ${IMAGE_NAME}"
-
-  # Docker build
-  sudo docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" "${IMAGE_DIR}"
-
-  # Tag image for ACR
-  ACR_IMAGE_TAG="${REGISTRY_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}"
-  sudo docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${ACR_IMAGE_TAG}"
-
-  # Push image to ACR
-  echo "🚀 Pushing ${IMAGE_NAME} to registry..."
-  sudo docker push "${ACR_IMAGE_TAG}"
-
-  # Cleanup Docker Data Immediately After Push
-  echo "🧹 Cleaning up Docker images and build cache for ${IMAGE_NAME}..."
-  sudo docker image rm "${IMAGE_NAME}:${IMAGE_TAG}" "${ACR_IMAGE_TAG}" || true
-  sudo docker builder prune -f
-  sudo docker image prune -f
-
-  echo "✅ Successfully built, pushed, and cleaned ${IMAGE_NAME}."
-done
-
-# Optional Extra-System Cleanup (removes all unused images & volumes)
-echo "🧹 Performing extra docker system cleanup..."
-sudo docker system prune -af --volumes
-
-echo "🎉 All Docker images built, pushed to ACR and cleaned up successfully!"
-
-
-
-# List of YAML files to parameterize and deploy
-YAML_FILES=(
-    "rag-mq-components-aio7.yaml"
-    "rag-web-workload-aio7-acrairstream.yaml"
-    "rag-interface-dapr-workload-aio7-acrairstream.yaml"
-    "rag-vdb-dapr-workload-aio7-acrairstream.yaml"
-    "rag-slm-dapr-workload-aio7-acrairstream.yaml"
-)
-
-# Replace this with the exact registry URL used in your YAML files currently (example: airstream.azurecr.io)
-OLD_REGISTRY_URL="airstream.azurecr.io" 
-
-# Remote base URL
-REMOTE_YAML_URL_BASE="https://raw.githubusercontent.com/Azure-Samples/edge-aio-in-a-box/main/rag-on-edge/yaml"
-
-# Directory to store processed YAML files temporarily
-LOCAL_YAML_DIR="./tmp_yaml_deployments"
-mkdir -p "${LOCAL_YAML_DIR}"
-
-# Download, parameterize, and deploy YAML files
-for YAML_FILE in "${YAML_FILES[@]}"; do
-    echo "🔧 Processing YAML file: ${YAML_FILE}"
-
-    # Download the YAML file
-    curl -sL "${REMOTE_YAML_URL_BASE}/${YAML_FILE}" -o "${LOCAL_YAML_DIR}/${YAML_FILE}"
-
-    # Replace old registry URL dynamically with REGISTRY_NAME variable
-    sed "s|${OLD_REGISTRY_URL}|${REGISTRY_NAME}.azurecr.io|g" "${LOCAL_YAML_DIR}/${YAML_FILE}" > "${LOCAL_YAML_DIR}/param-${YAML_FILE}"
-
-    # Deploy parameterized YAML to Kubernetes
-    kubectl apply -f "${LOCAL_YAML_DIR}/param-${YAML_FILE}"
-
-    echo "✅ Deployed ${YAML_FILE} to Kubernetes successfully."
-done
-
-echo "🚀 ALL YAML FILES DEPLOYED SUCCESSFULLY!"
-### ---------------------------------------------- ###
 
 
 
