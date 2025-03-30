@@ -39,11 +39,11 @@ spec:
       #serviceAccountName: rag-interface-mqtt-client
       volumes:
       # SAT used to authenticate between Dapr and the MQTT broker
-      - name: mqtt-client-credentials
+      - name: mqtt-client-token
         projected:
           sources:
             - serviceAccountToken:
-                path: mqtt-client-credentials
+                path: mqtt-client-token
                 audience: aio-mq
                 expirationSeconds: 86400
 

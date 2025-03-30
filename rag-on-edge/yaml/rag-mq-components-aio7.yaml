@@ -9,7 +9,7 @@ metadata:
         "name": "iot-operations-dapr-components",
         "image": "ghcr.io/azure/iot-operations-dapr-components:latest",
         "volumeMounts": [
-          { "name": "mqtt-client-token", "mountPath": "/var/run/secrets/tokens" },
+          { "name": "mqtt-client-credentials", "mountPath": "/var/run/secrets/tokens" },
           { "name": "aio-ca-trust-bundle", "mountPath": "/var/run/certs/aio-internal-ca-cert" }
         ],
         "env": [
@@ -31,7 +31,7 @@ spec:
   - name: caFile
     value: /var/run/certs/aio-internal-ca-cert/ca.crt
   - name: satAuthFile
-    value: /var/run/secrets/tokens/mqtt-client-token
+    value: /var/run/secrets/tokens/mqtt-client-credentials
 ---
 apiVersion: dapr.io/v1alpha1
 kind: Component
@@ -51,4 +51,4 @@ spec:
   - name: caFile
     value: /var/run/certs/aio-internal-ca-cert/ca.crt
   - name: satAuthFile
-    value: /var/run/secrets/tokens/mqtt-client-token
+    value: /var/run/secrets/tokens/mqtt-client-credentials
