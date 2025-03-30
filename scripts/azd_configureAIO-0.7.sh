@@ -343,6 +343,7 @@ kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box
 kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box/main/rag-on-edge/yaml/rag-slm-dapr-workload-aio7-acrairstream.yaml
 
 #Deploy the OPC PLC simulator
+
 kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/opc-plc-deployment.yaml
 #Run the following command to deploy a pod that includes the mosquitto_pub and mosquitto_sub tools that are useful for interacting with the MQTT broker in the cluster
 kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/mqtt-client.yaml
