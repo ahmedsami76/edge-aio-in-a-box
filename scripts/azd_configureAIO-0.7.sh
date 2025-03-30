@@ -289,7 +289,7 @@ az iot ops create -g $rg \
     --custom-location "${arcK8sClusterName}-cl-${SUFFIX}" \
     -n "${arcK8sClusterName}-ops-instance" \
     --sr-resource-id "$(az iot ops schema registry show --name $SCHEMA_REGISTRY --resource-group $rg -o tsv --query id)" \
-    --broker-frontend-replicas 1 --broker-frontend-workers 1 --broker-backend-part 1 --broker-backend-workers 1 --broker-backend-rf 2 --broker-mem-profile Low
+    --broker-frontend-replicas 2 --broker-frontend-workers 2 --broker-backend-part 2 --broker-backend-workers 2 --broker-backend-rf 2 --broker-mem-profile Medium
 
 
 #############################
@@ -298,14 +298,35 @@ az iot ops create -g $rg \
 #https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-kubernetes-extension
 # allowInsecureConnections=True - Allow HTTP communication or not. HTTP communication is not a secure way. If not allowed, HTTPs will be used.
 # InferenceRouterHA=False       - By default, AzureML extension will deploy 3 ingress controller replicas for high availability, which requires at least 3 workers in a cluster. Set this to False if you have less than 3 workers and want to deploy AzureML extension for development and testing only, in this case it will deploy one ingress controller replica only.
-az k8s-extension create \
-    -g $rg \
-    -c $arcK8sClusterName \
-    -n azureml \
-    --cluster-type connectedClusters \
-    --extension-type Microsoft.AzureML.Kubernetes \
-    --scope cluster \
-    --config enableTraining=False enableInference=True allowInsecureConnections=True inferenceRouterServiceType=loadBalancer inferenceRouterHA=False autoUpgrade=True installNvidiaDevicePlugin=False installPromOp=False installVolcano=False installDcgmExporter=False --auto-upgrade true --verbose # This is since our K3s is 1 node
+# az k8s-extension create \
+#     -g $rg \
+#     -c $arcK8sClusterName \
+#     -n azureml \
+#     --cluster-type connectedClusters \
+#     --extension-type Microsoft.AzureML.Kubernetes \
+#     --scope cluster \
+#     --config enableTraining=False enableInference=True allowInsecureConnections=True inferenceRouterServiceType=loadBalancer inferenceRouterHA=False autoUpgrade=True installNvidiaDevicePlugin=False installPromOp=False installVolcano=False installDcgmExporter=False --auto-upgrade true --verbose # This is since our K3s is 1 node
+
+
+####################
+# Adds an asset endpoint that connects to the OPC PLC simulator.
+# Adds an asset that represents the oven and defines the data points that the oven exposes.
+# Adds a dataflow that manipulates the messages from the simulated oven.
+# Creates an Azure Event Hubs instance to receive the data
+
+
+wget https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/quickstart.bicep -O quickstart.bicep
+
+AIO_EXTENSION_NAME=$(az k8s-extension list -g $rg --cluster-name $arcK8sClusterName --cluster-type connectedClusters --query "[?extensionType == 'microsoft.iotoperations'].id" -o tsv | awk -F'/' '{print $NF}')
+
+AIO_INSTANCE_NAME=$(az iot ops list -g $rg --query "[0].name" -o tsv)
+CUSTOM_LOCATION_NAME=$(az iot ops list -g $rg --query "[0].extendedLocation.name" -o tsv | awk -F'/' '{print $NF}')
+
+az deployment group create --subscription $subscriptionId --resource-group $rg --template-file quickstart.bicep --parameters clusterName=$arcK8sClusterName customLocationName="${arcK8sClusterName}-cl-${SUFFIX}" aioExtensionName=$AIO_EXTENSION_NAME aioInstanceName=$AIO_INSTANCE_NAME
+
+###########################
+
+
 
 
 #############################
@@ -393,9 +414,9 @@ kubectl apply -f https://raw.githubusercontent.com/AhmedSami76/edge-aio-in-a-box
 
 #Deploy the OPC PLC simulator
 
-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/opc-plc-deployment.yaml
+# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/opc-plc-deployment.yaml
 #Run the following command to deploy a pod that includes the mosquitto_pub and mosquitto_sub tools that are useful for interacting with the MQTT broker in the cluster
-kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/mqtt-client.yaml
+# kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/mqtt-client.yaml
 
 
 
