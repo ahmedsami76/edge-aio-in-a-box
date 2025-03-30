@@ -309,6 +309,11 @@ az iot ops create -g $rg \
 
 
 ####################
+# This quickstart uses the OPC PLC simulator to generate sample data. To deploy the OPC PLC simulator, run the following command:
+
+sudo kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/explore-iot-operations/main/samples/quickstarts/opc-plc-deployment.yaml
+
+#####################
 # Adds an asset endpoint that connects to the OPC PLC simulator.
 # Adds an asset that represents the oven and defines the data points that the oven exposes.
 # Adds a dataflow that manipulates the messages from the simulated oven.
