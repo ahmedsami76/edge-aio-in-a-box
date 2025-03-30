@@ -9,7 +9,7 @@ metadata:
         "name": "iot-operations-dapr-components",
         "image": "ghcr.io/azure/iot-operations-dapr-components:latest",
         "volumeMounts": [
-          { "name": "mqtt-client-credentials", "mountPath": "/var/run/secrets/tokens" },
+          { "name": "mqtt-client-token", "mountPath": "/var/run/secrets/tokens" },
           { "name": "aio-ca-trust-bundle", "mountPath": "/var/run/certs/aio-internal-ca-cert" }
         ],
         "env": [
