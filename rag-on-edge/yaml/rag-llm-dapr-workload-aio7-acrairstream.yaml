@@ -54,7 +54,7 @@ spec:
 
       containers:
         - name: rag-llm
-          image: asami76/llmmodule:latest
+          image: asami76/rag-on-edge-llm:latest
           imagePullPolicy: Always
           # Remove commented out env variable if you want to override the # of logical cores in your system
           # env:
