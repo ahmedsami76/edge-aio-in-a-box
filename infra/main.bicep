@@ -416,6 +416,44 @@ module m_nsg 'modules/vnet/nsg.bicep' = {
           destinationAddressPrefix: '*'
         }
       }
+      {
+        name: 'AllowAnyCustom8501Inbound'
+        properties: {
+          priority: 1052
+          sourceAddressPrefix: '*'
+          protocol: '*'
+          destinationPortRange: '8501'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+        }
+      {
+        name: 'AllowAnyCustom8601Inbound'
+        properties: {
+          priority: 1053
+          sourceAddressPrefix: '*'
+          protocol: '*'
+          destinationPortRange: '8601'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
+      {
+        name: 'AllowAnyCustom8602Inbound'
+        properties: {
+          priority: 1054
+          sourceAddressPrefix: '*'
+          protocol: '*'
+          destinationPortRange: '8602'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
     ]
   }
 }
