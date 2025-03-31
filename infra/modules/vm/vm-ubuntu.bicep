@@ -191,6 +191,35 @@ module roleOwner '../identity/role.bicep' = {
   }
 }
 
+// Newly recommended added roles
+module roleConnectedKubernetesClusterAdmin '../identity/role.bicep' = {
+  name: 'deployVMRole_ConnectedK8sClusterAdmin'
+  scope: resourceGroup()
+  params:{
+    principalId: vmUserAssignedIdentityPrincipalID
+    roleGuid: '5548b2cf-c94c-4228-90ba-30851930a12f' // Azure Connected Kubernetes Cluster Admin
+  }
+}
+
+module roleCustomLocationsContributor '../identity/role.bicep' = {
+  name: 'deployVMRole_CustomLocationsContributor'
+  scope: resourceGroup()
+  params:{
+    principalId: vmUserAssignedIdentityPrincipalID
+    roleGuid: '8b8f8d44-9fe8-4b72-b8a8-3a7f522f8ee8' // Custom Locations contributor
+  }
+}
+
+module roleAKSRbacWriter '../identity/role.bicep' = {
+  name: 'deployVMRole_AKSRbacWriter'
+  scope: resourceGroup()
+  params:{
+    principalId: vmUserAssignedIdentityPrincipalID
+    roleGuid: 'a7ffa36f-339b-4b5c-8bdf-e2c188b2c0eb' // Azure Kubernetes Service RBAC Writer
+  }
+}
+
+
 resource cognitiveServices 'Microsoft.CognitiveServices/accounts@2023-05-01' existing = {
   name: aiServicesName
 }
