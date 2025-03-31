@@ -204,6 +204,7 @@ echo "📝  creating K3s configuration file  at /etc/rancher/k3s/config.yaml  ..
 sudo tee /etc/rancher/k3s/config.yaml > /dev/null <<EOF
 kube-apiserver-arg:
 - service-account-issuer=${SERVICE_ACCOUNT_ISSUER}
+- service-account-jwks-uri=${SERVICE_ACCOUNT_ISSUER}/openid/v1/jwks
 - service-account-max-token-expiration=24h
 EOF
 
